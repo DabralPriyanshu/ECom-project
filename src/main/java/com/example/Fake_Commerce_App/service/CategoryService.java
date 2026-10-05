@@ -6,9 +6,10 @@ import com.example.Fake_Commerce_App.repository.CategoryRepository;
 import com.example.Fake_Commerce_App.schema.Category;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
+import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CategoryService {
@@ -36,6 +37,7 @@ public class CategoryService {
        Category category= categoryRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("No category found with ID " + id));
                 categoryRepository.deleteById(id);
+                log.info("Category with ID  {}:  deleted",id);
     }
 }
 

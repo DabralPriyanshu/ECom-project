@@ -11,6 +11,7 @@ import com.example.Fake_Commerce_App.schema.OrderProducts;
 import com.example.Fake_Commerce_App.schema.OrderStatus;
 import com.example.Fake_Commerce_App.schema.Product;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.weaver.ast.Or;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -89,6 +91,7 @@ public class OrderService {
             Map<Long, Product> productMap = productList.stream().collect(Collectors.toMap(Product::getId, Function.identity()));
             for (Long id : productIds) {
                 if (!productMap.containsKey(id)) {
+                    log.error("Product with ID {} not found ",id);
                     throw new ResourceNotFoundException("Product not found with ID: " + id);
                 }
             }

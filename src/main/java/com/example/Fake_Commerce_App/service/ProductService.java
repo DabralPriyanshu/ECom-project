@@ -8,16 +8,21 @@ import com.example.Fake_Commerce_App.repository.CategoryRepository;
 import com.example.Fake_Commerce_App.repository.ProductRepository;
 import com.example.Fake_Commerce_App.schema.Category;
 import com.example.Fake_Commerce_App.schema.Product;
+import com.example.Fake_Commerce_App.service.cache.ProductRedisCache;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final ProductRedisCache redisCache;
 
 
     public List<ProductResponseDto> getAllProducts() {
@@ -25,9 +30,20 @@ public class ProductService {
     }
 
     public ProductResponseDto getById(Long id) {
-        Product product = productRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException("Product with ID " + id + " not found !!!"));
-        return mapToDto(product);
+        java.util.Optional<ProductResponseDto> productResponseDto = redisCache.getSummary(id);
+
+        if (productResponseDto.isPresent()) {
+            log.info("Cache hit for product summary :{} ",id);
+            return productResponseDto.get();
+        } else {
+            log.info("Cache miss for product summary :{} ",id);
+            Product product = productRepository.findById(id).orElseThrow(() ->
+                    new ResourceNotFoundException("Product with ID " + id + " not found !!!"));
+            ProductResponseDto responseDto = mapToDto(product);
+            redisCache.putProductSummary(id, responseDto);
+            return responseDto;
+        }
+
     }
 
     public Product createProduct(CreateProductDto requestDto) {
